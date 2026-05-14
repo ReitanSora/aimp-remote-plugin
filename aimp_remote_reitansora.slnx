@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="aimp_remote_reitansora.vcxproj" Id="bf3d2d21-5ee6-4da8-b8e6-d0b44343ce67" />
+</Solution>
