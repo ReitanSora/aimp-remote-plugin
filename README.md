@@ -90,9 +90,8 @@ All managed via vcpkg manifest (`vcpkg.json`):
 ### Steps
 
 1. Open the solution file `aimp_remote_reitansora.slnx` in Visual Studio.
-2. Configure the target (`Release x64` is recommended).
-3. Build the solution. vcpkg will automatically restore dependencies.
-4. The output DLL (`aimp_remote_reitansora.dll`) will be placed in the build output directory.
+2. Build the solution. vcpkg will automatically restore dependencies.
+3. The output DLL (`aimp_remote_reitansora.dll`) will be placed in the build output directory.
 
 ### Installation
 
