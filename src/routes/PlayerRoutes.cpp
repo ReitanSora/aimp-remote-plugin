@@ -165,7 +165,7 @@ static void HandleSetVolume(const httplib::Request& req, httplib::Response& res)
         
         res.set_content(response.dump(), "application/json");
     }
-    catch (const json::exception& e)
+    catch (const json::exception&)
     {
         res.status = 400;
         res.set_content(json{{"error", "Invalid JSON"}}.dump(), "application/json");
@@ -196,7 +196,7 @@ static void HandleSeek(const httplib::Request& req, httplib::Response& res)
         
         res.set_content(response.dump(), "application/json");
     }
-    catch (const json::exception& e)
+    catch (const json::exception&)
     {
         res.status = 400;
         res.set_content(json{{"error", "Invalid JSON"}}.dump(), "application/json");

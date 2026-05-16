@@ -11,13 +11,21 @@
 #include "../../sdk/aimp/5.40/apiMessages.h"
 #include "../../sdk/aimp/5.40/apiRemote.h"
 #include "../../sdk/aimp/5.40/apiAlbumArt.h"
+#include "../../sdk/aimp/5.40/apiOptions.h"
+#include "../../sdk/aimp/5.40/apiGUI.h"
 
-#include <nlohmann/json.hpp>
-#include <httplib.h>
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixwebsocket/IXWebSocketServer.h>
+#include <nlohmann/json_fwd.hpp>
 
-using json = nlohmann::json;
+namespace httplib 
+{ 
+    class Server; 
+}
+
+namespace ix 
+{ 
+    class WebSocket; 
+    class WebSocketServer; 
+}
 
 static const GUID IID_IAIMPPlugin =
     {0x41494D50, 0x506C, 0x7567, {0x69, 0x6E, 0x48, 0x64, 0x72, 0x49, 0x44, 0x00}};
@@ -29,7 +37,7 @@ static const GUID IID_IAIMPPlugin =
  * Implements both IAIMPPlugin (lifecycle) and IAIMPMessageHook (real-time events).
  * Provides REST API via httplib and WebSocket events via ixwebsocket.
  */
-class MyPlugin : public IAIMPPlugin, public IAIMPMessageHook
+class MyPlugin : public IAIMPPlugin, public IAIMPMessageHook, public IAIMPOptionsDialogFrame
 {
 private:
     // =========================================================================
@@ -40,14 +48,13 @@ private:
     // =========================================================================
     // HTTP REST Server (port 3553)
     // =========================================================================
-    httplib::Server _httpServer;
+    std::unique_ptr<httplib::Server> _httpServer;
     std::unique_ptr<std::thread> _httpThread;
-    bool _httpRunning = false;
 
     // =========================================================================
     // WebSocket Server (port 3554)
     // =========================================================================
-    ix::WebSocketServer* _wsServer = nullptr;
+    std::unique_ptr<ix::WebSocketServer> _wsServer;
     std::mutex _wsMutex;
     std::vector<std::shared_ptr<ix::WebSocket>> _wsClients;
 
@@ -59,6 +66,10 @@ private:
     IAIMPServiceAlbumArt *_albumArtService = nullptr;
     IAIMPServicePlaylistManager *_playlistService = nullptr;
     IAIMPServiceThreads *_threadService = nullptr;
+    IAIMPServiceOptionsDialog* _optionsService = nullptr;
+    IAIMPServiceUI* _uiService = nullptr;
+    IAIMPUIForm* _uiForm = nullptr;
+    IAIMPUILabel* _ipLabel = nullptr;
 
     // =========================================================================
     // Private Helper Methods
@@ -69,7 +80,7 @@ private:
      * @return JSON object with track info (title, artist, album, etc.)
      * @note Must be called from AIMP's main thread
      */
-    json BuildTrackInfoJson();
+    nlohmann::json BuildTrackInfoJson();
 
     /**
      * @brief Converts wide string (UTF-16) to UTF-8
@@ -86,7 +97,7 @@ private:
     std::wstring Utf8ToWide(const std::string &str);
 
 public:
-    httplib::Server& GetHttpServer() { return _httpServer; }
+    httplib::Server& GetHttpServer() { return *_httpServer; }
     // =========================================================================
     // Public Accessors (for Tasks)
     // =========================================================================
@@ -126,7 +137,7 @@ public:
      * @param msg JSON object to broadcast
      * @note Thread-safe; automatically removes dead connections
      */
-    void BroadcastWS(const json &msg);
+    void BroadcastWS(const nlohmann::json &msg);
 
     // =========================================================================
     // Property Extraction Helpers
@@ -150,28 +161,12 @@ public:
      */
     std::string GetPropertyText(IAIMPFileInfo *info, int propID, const std::string &defaultValue = "Unknown");
 
-    TChar *WINAPI InfoGet(int Index) override; // Cumple con IAIMPPlugin::InfoGet
-    LongWord WINAPI InfoGetCategories() override;
+    HRESULT CreateAIMPString(const std::string& utf8Text, IAIMPString** ppAIMPString);
 
-    //TChar *WINAPI InfoGet(int Index)
-    //{
-    //    switch (Index)
-    //    {
-    //    case AIMP_PLUGIN_INFO_NAME:
-    //        return (TChar *)L"AIMP Remote ReitanSora";
-    //    case AIMP_PLUGIN_INFO_AUTHOR:
-    //        return (TChar *)L"ReitanSora";
-    //    case AIMP_PLUGIN_INFO_SHORT_DESCRIPTION:
-    //        return (TChar *)L"Simple server with endpoints to control AIMP remotely";
-    //    }
-    //    return nullptr;
-    //}
-
-    //LongWord WINAPI InfoGetCategories()
-    //{
-    //    return AIMP_PLUGIN_CATEGORY_ADDONS;
-    //}
-    HRESULT CreateAIMPString(const std::string &utf8Text, IAIMPString **ppAIMPString);
+    HRESULT WINAPI GetName(IAIMPString** S) override;
+    HWND WINAPI CreateFrame(HWND ParentWnd) override;
+    void WINAPI DestroyFrame() override;
+    void WINAPI Notification(int ID) override;
 
     // =========================================================================
     // IAIMPPlugin Interface
@@ -180,6 +175,8 @@ public:
     HRESULT WINAPI Initialize(IAIMPCore *Core) override;
     HRESULT WINAPI Finalize() override;
     void WINAPI SystemNotification(int NotifyID, IUnknown *Data) override;
+    TChar* WINAPI InfoGet(int Index) override;
+    LongWord WINAPI InfoGetCategories() override;
 
     // =========================================================================
     // IAIMPMessageHook Interface

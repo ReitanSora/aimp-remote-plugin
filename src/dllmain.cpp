@@ -25,9 +25,9 @@ extern "C" __declspec(dllexport) TChar *WINAPI InfoGet(int Index)
     switch (Index)
     {
     case AIMP_PLUGIN_INFO_NAME:
-        return (TChar *)L"AIMP Remote ReitanSora";
+        return (TChar *)L"AIMP Remote";
     case AIMP_PLUGIN_INFO_AUTHOR:
-        return (TChar *)L"ReitanSora";
+        return (TChar *)L"Stiven Pilca";
     case AIMP_PLUGIN_INFO_SHORT_DESCRIPTION:
         return (TChar *)L"Simple server with endpoints to control AIMP remotely";
     }

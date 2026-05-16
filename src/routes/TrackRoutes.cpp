@@ -9,23 +9,6 @@ using json = nlohmann::json;
 // Helper Functions
 // =============================================================================
 
-/**
- * @brief Convert a wide char to UTF-8
- * @param wstr Wide string
- */
-std::string WideToUTF8(const WCHAR *wstr)
-{
-    if (!wstr || wstr[0] == L'\0')
-        return "";
-    int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
-    std::string strTo(size_needed, 0);
-    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, &strTo[0], size_needed, NULL, NULL);
-    if (!strTo.empty() && strTo.back() == '\0')
-        strTo.pop_back();
-    return strTo;
-}
-
-//
 void __stdcall OnAlbumArtReceive(IAIMPImage *Image, IAIMPImageContainer *Container, void *UserData)
 {
     auto *imageBuffer = static_cast<std::vector<unsigned char> *>(UserData);
@@ -40,7 +23,6 @@ void __stdcall OnAlbumArtReceive(IAIMPImage *Image, IAIMPImageContainer *Contain
     }
 }
 
-//
 std::string get_mime_type(const std::vector<unsigned char> &data)
 {
     if (data.size() < 4)

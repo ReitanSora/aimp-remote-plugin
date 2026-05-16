@@ -181,12 +181,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="sdk\aimp\5.40\apiActions.h" />
     <ClInclude Include="sdk\aimp\5.40\apiAlbumArt.h" />
     <ClInclude Include="sdk\aimp\5.40\apiCore.h" />
     <ClInclude Include="sdk\aimp\5.40\apiFileManager.h" />
+    <ClInclude Include="sdk\aimp\5.40\apiGUI.h" />
+    <ClInclude Include="sdk\aimp\5.40\apiMenu.h" />
     <ClInclude Include="sdk\aimp\5.40\apiMessages.h" />
     <ClInclude Include="sdk\aimp\5.40\apiMusicLibrary.h" />
     <ClInclude Include="sdk\aimp\5.40\apiObjects.h" />
+    <ClInclude Include="sdk\aimp\5.40\apiOptions.h" />
     <ClInclude Include="sdk\aimp\5.40\apiPlayer.h" />
     <ClInclude Include="sdk\aimp\5.40\apiPlaylists.h" />
     <ClInclude Include="sdk\aimp\5.40\apiPlugin.h" />
@@ -196,6 +200,8 @@
     <ClInclude Include="src\core\Config.h" />
     <ClInclude Include="src\core\Plugin.h" />
     <ClInclude Include="src\framework.h" />
+    <ClInclude Include="src\helpers\NetworkHelper.h" />
+    <ClInclude Include="src\helpers\QRHelper.h" />
     <ClInclude Include="src\models\Playlist.h" />
     <ClInclude Include="src\models\Track.h" />
     <ClInclude Include="src\pch.h" />
@@ -209,10 +215,17 @@
     <ClInclude Include="src\tasks\CGetPlaylistsTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistStatsTask.h" />
     <ClInclude Include="src\tasks\CPlayItemTask.h" />
+    <ClInclude Include="src\third_party\qrcodegen\qrcodegen.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\Plugin.cpp" />
+    <ClCompile Include="src\core\PluginEvents.cpp" />
+    <ClCompile Include="src\core\PluginLifecycle.cpp" />
+    <ClCompile Include="src\core\PluginUI.cpp" />
+    <ClCompile Include="src\core\PluginUtils.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\helpers\NetworkHelper.cpp" />
+    <ClCompile Include="src\helpers\QRHelper.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -228,6 +241,7 @@
     <ClCompile Include="src\tasks\CGetPlaylistsTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistStatsTask.cpp" />
     <ClCompile Include="src\tasks\CPlayItemTask.cpp" />
+    <ClCompile Include="src\third_party\qrcodegen\qrcodegen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\aimp_remote_reitansora.rc" />
