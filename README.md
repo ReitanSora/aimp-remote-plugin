@@ -124,7 +124,7 @@ sdk/
 
 ## Screenshots
 
-<img width="454" alt="QR code displayed in AIMP settings dialog for mobile connection" src="https://github.com/user-attachments/assets/ff702ea3-a001-4cc4-9666-295272d629d0" />
+<img width="453" alt="Plugin in the plugins list of AIMP" src="https://github.com/user-attachments/assets/3f42b6e9-f9b1-42ff-a980-461aa8f90224" />
 <img width="744" alt="AIMP Remote options page with QR code and connection instructions" src="https://github.com/user-attachments/assets/b1a4234e-7da1-42ec-9f53-97715d2a0991" />
 
 ## License
