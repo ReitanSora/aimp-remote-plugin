@@ -1,4 +1,4 @@
-# AIMP Remote
+# Fluke: AIMP Remote Control
 
 A plugin for [AIMP](https://www.aimp.ru) that exposes a REST API and WebSocket server for remote control of the audio player. Designed for AIMP v5.40 (build 2709) and above.
 
