@@ -208,6 +208,4 @@ public:
  */
 extern "C" {
     __declspec(dllexport) HRESULT WINAPI AIMPPluginGetHeader(IAIMPPlugin** Unknown);
-    __declspec(dllexport) TChar* WINAPI InfoGet(int Index);
-    __declspec(dllexport) LongWord WINAPI InfoGetCategories();
 }

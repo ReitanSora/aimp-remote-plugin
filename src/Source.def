@@ -1,5 +1,3 @@
 LIBRARY "aimp_remote_reitansora"
 EXPORTS
-    AIMPPluginGetHeader   @1
-    InfoGet               @2
-    InfoGetCategories     @3
+    AIMPPluginGetHeader

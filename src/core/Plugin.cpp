@@ -49,12 +49,21 @@ ULONG WINAPI MyPlugin::Release()
     return count;
 }
 
-TChar *WINAPI MyPlugin::InfoGet(int Index)
+TChar* WINAPI MyPlugin::InfoGet(int Index)
 {
-    return ::InfoGet(Index);
+    switch (Index)
+    {
+    case AIMP_PLUGIN_INFO_NAME:
+        return (TChar*)L"Fluke: AIMP Remote Control";
+    case AIMP_PLUGIN_INFO_AUTHOR:
+        return (TChar*)L"Stiven Pilca";
+    case AIMP_PLUGIN_INFO_SHORT_DESCRIPTION:
+        return (TChar*)L"Remote control plugin for AIMP";
+    }
+    return nullptr;
 }
 
 LongWord WINAPI MyPlugin::InfoGetCategories()
 {
-    return ::InfoGetCategories();
+    return AIMP_PLUGIN_CATEGORY_ADDONS;
 }
