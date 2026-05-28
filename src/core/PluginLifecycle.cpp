@@ -119,12 +119,20 @@ HRESULT WINAPI MyPlugin::Initialize(IAIMPCore* Core)
 
     _wsServer = std::make_unique<ix::WebSocketServer>(Config::WEBSOCKET_PORT, Config::WEBSOCKET_HOST);
 
+    ix::WebSocketPerMessageDeflateOptions defalteOptions(false);
+    _wsServer->disablePerMessageDeflate();
+
     _wsServer->setOnConnectionCallback(
         [this](std::weak_ptr<ix::WebSocket> ws_weak, std::shared_ptr<ix::ConnectionState> state)
         {
             auto ws = ws_weak.lock();
             if (!ws)
                 return;
+
+            {
+                std::lock_guard<std::mutex> lock(_wsMutex);
+                _wsClients.push_back(ws);
+            }
 
             ws->setOnMessageCallback(
                 [this, ws_weak](const ix::WebSocketMessagePtr& msg)
@@ -133,12 +141,7 @@ HRESULT WINAPI MyPlugin::Initialize(IAIMPCore* Core)
                     if (!ws)
                         return;
 
-                    if (msg->type == ix::WebSocketMessageType::Open)
-                    {
-                        std::lock_guard<std::mutex> lock(_wsMutex);
-                        _wsClients.push_back(ws);
-                    }
-                    else if (msg->type == ix::WebSocketMessageType::Close ||
+                    if (msg->type == ix::WebSocketMessageType::Close ||
                         msg->type == ix::WebSocketMessageType::Error)
                     {
                         std::lock_guard<std::mutex> lock(_wsMutex);
@@ -333,6 +336,6 @@ void MyPlugin::BroadcastWS(const json& msg)
     // Send to remaining connected clients
     for (auto& client : _wsClients)
     {
-        client->send(text);
+        client->sendText(text);
     }
 }
