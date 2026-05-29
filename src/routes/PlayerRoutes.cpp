@@ -59,8 +59,8 @@ static void HandleGetPlayerState(const httplib::Request& req, httplib::Response&
     LRESULT duration = GetAIMPProperty(AIMP_RA_PROPERTY_PLAYER_DURATION);
     LRESULT volume = GetAIMPProperty(AIMP_RA_PROPERTY_VOLUME);
     LRESULT mute = GetAIMPProperty(AIMP_RA_PROPERTY_MUTE);
-    LRESULT shuffle = GetAIMPProperty(AIMP_RA_PROPERTY_TRACK_REPEAT);
-    LRESULT repeat = GetAIMPProperty(AIMP_RA_PROPERTY_TRACK_SHUFFLE);
+    LRESULT repeat = GetAIMPProperty(AIMP_RA_PROPERTY_TRACK_REPEAT);
+    LRESULT shuffle = GetAIMPProperty(AIMP_RA_PROPERTY_TRACK_SHUFFLE);
     
     json response = {
         {"state", state},          // 0=stopped, 1=paused, 2=playing
