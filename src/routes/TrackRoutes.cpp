@@ -26,7 +26,7 @@ void __stdcall OnAlbumArtReceive(IAIMPImage *Image, IAIMPImageContainer *Contain
 std::string get_mime_type(const std::vector<unsigned char> &data)
 {
     if (data.size() < 4)
-        return "image/jpeg"; // Default seguro
+        return "image/jpeg";
 
     // JPEG: FF D8 FF
     if (data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF)
@@ -75,6 +75,15 @@ static void HandleGetTrackInfo(MyPlugin *plugin, const httplib::Request &req, ht
     std::string artist = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_ARTIST, "Unknown Artist");
     std::string album = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_ALBUM, "Unknown Album");
     std::string genre = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_GENRE, "Unknown Genre");
+	std::string filename = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_FILENAME, "Unknown Format");
+    std::string extension = "unknown";
+
+    size_t dotPos = filename.find_last_of(".");
+    if (dotPos != std::string::npos && dotPos + 1 < filename.length()) {
+        extension = filename.substr(dotPos + 1);
+
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+    }
 
     int playCount = 0;
     int bitrate = 0;
@@ -90,6 +99,7 @@ static void HandleGetTrackInfo(MyPlugin *plugin, const httplib::Request &req, ht
         {"title", title},
         {"artist", artist},
         {"album", album},
+        {"format", extension},
         {"genre", genre},
         {"play_count", playCount},
         {"bitrate", bitrate},
