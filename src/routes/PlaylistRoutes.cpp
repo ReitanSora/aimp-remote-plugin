@@ -8,6 +8,8 @@
 #include "../tasks/CGetPlaylistStatsTask.h"
 #include "../tasks/CGetCurrentPlaylistTask.h"
 #include "../tasks/CPlayItemTask.h"
+#include "../tasks/CGetPlaylistTrackUriTask.h"
+#include "../helpers/AlbumArtHelper.h"
 
 using json = nlohmann::json;
 
@@ -259,6 +261,79 @@ static void HandlePlayPlaylistItem(MyPlugin *plugin, const httplib::Request &req
     task->Release();
 }
 
+static void HandleGetPlaylistCover(MyPlugin* plugin, const httplib::Request& req, httplib::Response& res)
+{
+
+    std::string id = req.get_param_value("id");
+    if (id.empty())
+    {
+        res.status = 400;
+        res.set_content("{\"error\":\"Missing playlist id\"}", "application/json");
+        return;
+    }
+
+    CGetPlaylistTrackUriTask* task = new CGetPlaylistTrackUriTask(plugin, id);
+    task->AddRef();
+
+    HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
+
+    std::vector<std::string> uris;
+    if (SUCCEEDED(hr))
+    {
+        uris = task->GetFileUris();
+    }
+    task->Release();
+
+    if (uris.empty())
+    {
+        res.status = 404;
+        res.set_content("{\"error\":\"Playlist empty or not found\"}", "application/json");
+        return;
+    }
+
+    std::vector<unsigned char> imageBytes;
+
+    for (const auto& uriStr : uris)
+    {
+        IAIMPString* fileURI = nullptr;
+        if (FAILED(plugin->CreateAIMPString(uriStr, &fileURI))) continue;
+
+        TTaskHandle taskID = 0;
+        plugin->GetAlbumArtService()->Get(
+            fileURI, nullptr, nullptr,
+            AIMP_SERVICE_ALBUMART_FLAGS_ORIGINAL,
+            OnAlbumArtReceive, &imageBytes, &taskID
+        );
+
+        int attempts = 0;
+        while (imageBytes.empty() && attempts < 50)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(15));
+            attempts++;
+        }
+
+        fileURI->Release();
+
+        if (!imageBytes.empty())
+        {
+            break;
+        }
+    }
+
+    if (!imageBytes.empty())
+    {
+        std::string mimeType = get_mime_type(imageBytes);
+        res.set_content(reinterpret_cast<const char*>(imageBytes.data()), imageBytes.size(), mimeType);
+        res.status = 200;
+    }
+    else
+    {
+        res.status = 404;
+        res.set_content("{\"error\":\"Cover art not found in playlist tracks\"}", "application/json");
+    }
+
+}
+
 // =============================================================================
 // Route Registration
 // =============================================================================
@@ -285,4 +360,7 @@ void RegisterPlaylistRoutes(MyPlugin* plugin)
 
     svr.Get("/playlist/play", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandlePlayPlaylistItem(plugin, req, res); });
+
+    svr.Get("/playlist/cover", [plugin](const httplib::Request& req, httplib::Response& res)
+            { HandleGetPlaylistCover(plugin, req, res); });
 }

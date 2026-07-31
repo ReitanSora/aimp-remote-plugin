@@ -120,6 +120,12 @@
     <ClInclude Include="src\third_party\qrcodegen\qrcodegen.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\tasks\CGetPlaylistTrackUriTask.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\helpers\AlbumArtHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp">
@@ -177,6 +183,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\third_party\qrcodegen\qrcodegen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tasks\CGetPlaylistTrackUriTask.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\helpers\AlbumArtHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

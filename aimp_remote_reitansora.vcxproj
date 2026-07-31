@@ -200,6 +200,7 @@
     <ClInclude Include="src\core\Config.h" />
     <ClInclude Include="src\core\Plugin.h" />
     <ClInclude Include="src\framework.h" />
+    <ClInclude Include="src\helpers\AlbumArtHelper.h" />
     <ClInclude Include="src\helpers\NetworkHelper.h" />
     <ClInclude Include="src\helpers\QRHelper.h" />
     <ClInclude Include="src\models\Playlist.h" />
@@ -210,6 +211,7 @@
     <ClInclude Include="src\routes\PlaylistRoutes.h" />
     <ClInclude Include="src\routes\TrackRoutes.h" />
     <ClInclude Include="src\tasks\CGetCurrentPlaylistTask.h" />
+    <ClInclude Include="src\tasks\CGetPlaylistTrackUriTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistInfoTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistItemsTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistsTask.h" />
@@ -224,6 +226,7 @@
     <ClCompile Include="src\core\PluginUI.cpp" />
     <ClCompile Include="src\core\PluginUtils.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\helpers\AlbumArtHelper.cpp" />
     <ClCompile Include="src\helpers\NetworkHelper.cpp" />
     <ClCompile Include="src\helpers\QRHelper.cpp" />
     <ClCompile Include="src\pch.cpp">
@@ -236,6 +239,7 @@
     <ClCompile Include="src\routes\PlaylistRoutes.cpp" />
     <ClCompile Include="src\routes\TrackRoutes.cpp" />
     <ClCompile Include="src\tasks\CGetCurrentPlaylistTask.cpp" />
+    <ClCompile Include="src\tasks\CGetPlaylistTrackUriTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistInfoTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistItemsTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistsTask.cpp" />
