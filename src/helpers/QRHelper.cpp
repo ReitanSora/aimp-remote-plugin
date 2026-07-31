@@ -7,7 +7,7 @@ IAIMPImage2* GenerateQRCodeImage(const std::wstring& ip, IAIMPCore* core)
     std::string ipA;
     for (wchar_t c : ip)
         ipA += (char)c;
-    std::string urlUtf8 = "http://" + ipA;
+    std::string urlUtf8 = "fluke://preferences?ip=" + ipA;
 
     QrCode qr = QrCode::encodeText(urlUtf8.c_str(), QrCode::Ecc::MEDIUM);
     const int qrSize = qr.getSize();
