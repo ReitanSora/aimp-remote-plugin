@@ -60,6 +60,7 @@ The plugin uses AIMP's Remote Access API (window messages `WM_AIMP_COMMAND` and 
 | GET    | `/playlist/stats`       | Get playlist statistics            |
 | GET    | `/playlist/items`       | Get all items in a playlist        |
 | GET    | `/playlist/play`        | Play a specific item from playlist |
+| GET    | `/playlist/cover`       | Get playlist cover from the first song with cover |
 
 ### WebSocket Events
 
@@ -120,7 +121,7 @@ src/
   routes/         -- HTTP endpoint handlers (player, playlist, track)
   models/         -- Data transfer structs (Track, Playlist)
   tasks/          -- Async AIMP tasks for playlist operations
-  helpers/        -- Network helper, QR code generation
+  helpers/        -- Network helper, QR code generation, Album Art helper
   third_party/    -- Bundled QR Code generator library
 sdk/
   aimp/5.40/      -- AIMP SDK headers
