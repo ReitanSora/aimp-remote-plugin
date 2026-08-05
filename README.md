@@ -2,7 +2,7 @@
   <img width="400" alt="fluke-logo" src="https://github.com/user-attachments/assets/db4b5948-d234-4041-9c86-af72effa3e7e" />
 </p>
 
-<h1 align="center">Fluke: AIMP Remote Control</h1>
+<h1 align="center">Fluke: Server</h1>
 
 A plugin for [AIMP](https://www.aimp.ru) that exposes a REST API and WebSocket server for remote control of the audio player. Designed for AIMP v5.40 (build 2709) and above.
 
