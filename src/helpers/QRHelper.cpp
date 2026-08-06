@@ -2,17 +2,13 @@
 
 #include "QRHelper.h"
 
-IAIMPImage2* GenerateQRCodeImage(const std::wstring& ip, IAIMPCore* core)
+IAIMPImage2* GenerateQRCodeImage(const std::string& text, IAIMPCore* core)
 {
-    std::string ipA;
-    for (wchar_t c : ip)
-        ipA += (char)c;
-    std::string urlUtf8 = "fluke://preferences?ip=" + ipA;
 
-    QrCode qr = QrCode::encodeText(urlUtf8.c_str(), QrCode::Ecc::MEDIUM);
+    QrCode qr = QrCode::encodeText(text.c_str(), QrCode::Ecc::MEDIUM);
     const int qrSize = qr.getSize();
     const int border = 1;
-    const int scale = 12;
+    const int scale = 6;
     const int imgSize = (qrSize + border * 2) * scale;
 
     HDC hdc = CreateCompatibleDC(NULL);

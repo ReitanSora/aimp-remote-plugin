@@ -6,4 +6,4 @@
 
 using qrcodegen::QrCode;
 
-IAIMPImage2* GenerateQRCodeImage(const std::wstring& ip, IAIMPCore* core);
+IAIMPImage2* GenerateQRCodeImage(const std::string& ip, IAIMPCore* core);
