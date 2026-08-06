@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Project:   AIMP
-//             Remote Control Plugin
+//  Project:   Fluke
+//             AIMP Remote Control Plugin
 //
 //  Target:    v5.40 build 2709
 //
