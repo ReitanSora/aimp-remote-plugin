@@ -130,13 +130,13 @@ sdk/
 ## Screenshots
 
 <img width="453" alt="Plugin in the plugins list of AIMP" src="https://github.com/user-attachments/assets/3f42b6e9-f9b1-42ff-a980-461aa8f90224" />
-<img width="744" alt="AIMP Remote options page with QR code and connection instructions" src="https://github.com/user-attachments/assets/b1a4234e-7da1-42ec-9f53-97715d2a0991" />
+<img width="744" alt="AIMP Remote options page with QR code and connection instructions" src="https://github.com/user-attachments/assets/c6e11745-9620-4585-bfcc-9e2ed7eec36f" />
 
 ## Mobile App
 
 If you want to download the mobile app, please scan the following QR code, and select the last available version.
 <p align="center">
-  <img width="400" alt="qr-code-mobile-app" src="https://github.com/user-attachments/assets/309d9a97-80b5-4951-b8dd-3fa3150c915c" />
+  <img width="400" alt="qr-code-mobile-app" src="https://github.com/user-attachments/assets/8eb37c20-dd8f-4b7e-96a4-88e451b24475" />
 </p>
 
 ## License
