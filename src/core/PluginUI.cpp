@@ -210,7 +210,7 @@ HWND WINAPI MyPlugin::CreateFrame(HWND ParentWnd)
 
             qrMobileApp->SetPlacement(placement);
 
-            std::string urlUtf8 = "https://mega.nz/folder/oB4XWQxZ#kMF6POp4pGYJhxS9n1CDmw";
+            std::string urlUtf8 = "https://github.com/ReitanSora/fluke-mobile/releases/latest/download/fluke_arm64-v8a.apk";
             IAIMPImage2* qrImage = GenerateQRCodeImage(urlUtf8, _core);
 
             if (qrImage)
