@@ -9,6 +9,7 @@
 #include "../tasks/CGetCurrentPlaylistTask.h"
 #include "../tasks/CPlayItemTask.h"
 #include "../tasks/CGetPlaylistTrackUriTask.h"
+#include "../tasks/CDeletePlaylistItemTask.h"
 #include "../helpers/AlbumArtHelper.h"
 
 using json = nlohmann::json;
@@ -334,6 +335,55 @@ static void HandleGetPlaylistCover(MyPlugin* plugin, const httplib::Request& req
 
 }
 
+static void HandleDeletePlaylistItem(MyPlugin *plugin, const httplib::Request &req, httplib::Response &res)
+{
+    if (!plugin->GetPlaylistService() || !plugin->GetThreadService())
+    {
+        res.status = 500;
+        res.set_content("{\"error\":\"Services unavailable\"}", "application/json");
+        return;
+    }
+
+    try
+    {
+        json body = json::parse(req.body);
+        std::string playlistId = body.at("playlistId").get<std::string>();
+        std::vector<int> songsIndexes = body.at("songsIndexes").get<std::vector<int>>();
+        boolean physicalDelete = body.at("physicalDelete").get<boolean>();
+
+        CDeletePlaylistItemTask* task = new CDeletePlaylistItemTask(plugin, playlistId, songsIndexes, physicalDelete);
+        task->AddRef();
+
+        HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
+
+        if (SUCCEEDED(hr))
+        {
+            if (task->HasErrors())
+            {
+                res.status = 400;
+                res.set_content("{\"error\":\"One or more item indexes are out of bounds or invalid.\"}", "application/json");
+            }
+            else
+            {
+                res.status = 200;
+                res.set_content("{\"success\": true}", "application/json");
+            }
+        }
+        else
+        {
+            res.status = 500;
+            res.set_content("{\"error\":\"Failed to execute delete task\"}", "application/json");
+        }
+
+        task->Release();
+    }
+    catch (const json::exception)
+    {
+        res.status = 400;
+        res.set_content("{\"error\":\"Invalid JSON body\"}", "application/json");
+    }
+}
+
 // =============================================================================
 // Route Registration
 // =============================================================================
@@ -363,4 +413,8 @@ void RegisterPlaylistRoutes(MyPlugin* plugin)
 
     svr.Get("/playlist/cover", [plugin](const httplib::Request& req, httplib::Response& res)
             { HandleGetPlaylistCover(plugin, req, res); });
+
+	// DELETE endpoint
+    svr.Delete("/playlist/items", [plugin](const httplib::Request& req, httplib::Response& res)
+            { HandleDeletePlaylistItem(plugin, req, res); });
 }
