@@ -68,19 +68,13 @@ private:
     IAIMPServiceThreads *_threadService = nullptr;
     IAIMPServiceOptionsDialog* _optionsService = nullptr;
     IAIMPServiceUI* _uiService = nullptr;
+    IAIMPServiceFileInfo* m_fileInfoService = nullptr;
     IAIMPUIForm* _uiForm = nullptr;
     IAIMPUILabel* _ipLabel = nullptr;
 
     // =========================================================================
     // Private Helper Methods
     // =========================================================================
-
-    /**
-     * @brief Builds JSON object with current track metadata
-     * @return JSON object with track info (title, artist, album, etc.)
-     * @note Must be called from AIMP's main thread
-     */
-    nlohmann::json BuildTrackInfoJson();
 
     /**
      * @brief Converts wide string (UTF-16) to UTF-8
@@ -133,6 +127,12 @@ public:
     IAIMPServiceThreads *GetThreadService() { return _threadService; };
 
     /**
+     * @brief Gets file info service for async operations
+     * @return Pointer to IAIMPServiceFileInfo
+     */
+    IAIMPServiceFileInfo* GetFileInfoService() const { return m_fileInfoService; }
+
+    /**
      * @brief Broadcasts JSON message to all connected WebSocket clients
      * @param msg JSON object to broadcast
      * @note Thread-safe; automatically removes dead connections
@@ -150,16 +150,7 @@ public:
      * @param defaultValue Default value if property is missing
      * @return Property value as UTF-8 string
      */
-    std::string GetPropertyTextPlaylist(IAIMPPropertyList *info, int propID, const std::string &defaultValue = "Unknown");
-
-    /**
-     * @brief Extracts string property from file info
-     * @param info File info object
-     * @param propID Property ID to extract
-     * @param defaultValue Default value if property is missing
-     * @return Property value as UTF-8 string
-     */
-    std::string GetPropertyText(IAIMPFileInfo *info, int propID, const std::string &defaultValue = "Unknown");
+    std::string GetPropertyText(IAIMPPropertyList *info, int propID, const std::string &defaultValue = "Unknown");
 
     HRESULT CreateAIMPString(const std::string& utf8Text, IAIMPString** ppAIMPString);
 

@@ -59,8 +59,8 @@ void WINAPI CGetCurrentPlaylistTask::Execute(IAIMPTaskOwner *Owner)
     IAIMPPropertyList *propList = nullptr;
     if (SUCCEEDED(playlist->QueryInterface(IID_IAIMPPropertyList, (void **)&propList)))
     {
-        _result.id = _plugin->GetPropertyTextPlaylist(propList, AIMP_PLAYLIST_PROPID_ID, "");
-        _result.name = _plugin->GetPropertyTextPlaylist(propList, AIMP_PLAYLIST_PROPID_NAME, "Unknown");
+        _result.id = _plugin->GetPropertyText(propList, AIMP_PLAYLIST_PROPID_ID, "");
+        _result.name = _plugin->GetPropertyText(propList, AIMP_PLAYLIST_PROPID_NAME, "Unknown");
         _result.itemCount = playlist->GetItemCount();
         _result.found = true;
         propList->Release();

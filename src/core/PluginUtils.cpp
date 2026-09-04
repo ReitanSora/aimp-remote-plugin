@@ -61,39 +61,6 @@ std::wstring MyPlugin::Utf8ToWide(const std::string& str)
 }
 
 /**
- * @brief Extracts a UTF-8 string property from a playlist property list.
- *
- * Retrieves the property identified by `propID` from an `IAIMPPropertyList`
- * as an `IAIMPString`, converts it to a UTF-8 `std::string` and returns it.
- * If the property is not present, or the retrieved string is empty, the
- * provided `defaultValue` is returned.
- *
- * Notes:
- * - This function queries `info->GetValueAsObject` for `IID_IAIMPString`.
- *   If successful, the returned `IAIMPString` is released before returning
- *   to avoid leaking COM objects.
- * - The conversion from wide characters to UTF-8 uses `WideToUTF8`.
- * - Callers must respect COM apartment/threading rules for `info`; this
- *   helper itself does not change `info`'s reference count.
- *
- * @param info Pointer to an `IAIMPPropertyList` exposing the requested property.
- * @param propID Property identifier to retrieve (for example, `AIMP_PLAYLIST_PROPID_ID`).
- * @param defaultValue Value to return when the property is missing or empty.
- * @return std::string UTF-8 encoded property value or `defaultValue`.
- */
-std::string MyPlugin::GetPropertyTextPlaylist(IAIMPPropertyList* info, int propID, const std::string& defaultValue)
-{
-    IAIMPString* aString = nullptr;
-    std::string result = "";
-    if (SUCCEEDED(info->GetValueAsObject(propID, IID_IAIMPString, (void**)&aString)))
-    {
-        result = WideToUTF8(aString->GetData());
-        aString->Release();
-    }
-    return result.empty() ? defaultValue : result;
-}
-
-/**
  * @brief Retrieve a textual property from an IAIMPFileInfo as a UTF-8 std::string.
  *
  * This helper queries the provided `IAIMPFileInfo` for a property identified by
@@ -120,7 +87,7 @@ std::string MyPlugin::GetPropertyTextPlaylist(IAIMPPropertyList* info, int propI
  * - This function does not perform thread-synchronization; ensure callers do
  *   not use the same `IAIMPFileInfo` concurrently in unsafe ways.
  */
-std::string MyPlugin::GetPropertyText(IAIMPFileInfo* info, int propID, const std::string& defaultValue)
+std::string MyPlugin::GetPropertyText(IAIMPPropertyList* info, int propID, const std::string& defaultValue)
 {
     IAIMPString* aString = nullptr;
     std::string result = "";

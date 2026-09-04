@@ -59,8 +59,8 @@ void WINAPI CGetPlaylistsTask::Execute(IAIMPTaskOwner *Owner)
                     {
                         PlaylistData d;
 
-                        d.name = _plugin->GetPropertyTextPlaylist(propList, AIMP_PLAYLIST_PROPID_NAME, "Unknown name");
-                        d.id = _plugin->GetPropertyTextPlaylist(propList, AIMP_PLAYLIST_PROPID_ID, std::to_string(i));
+                        d.name = _plugin->GetPropertyText(propList, AIMP_PLAYLIST_PROPID_NAME, "Unknown name");
+                        d.id = _plugin->GetPropertyText(propList, AIMP_PLAYLIST_PROPID_ID, std::to_string(i));
                         d.itemCount = pl->GetItemCount();
 
                         _results.push_back(d);

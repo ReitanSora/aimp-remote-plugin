@@ -51,8 +51,8 @@ void WINAPI CGetPlaylistInfoTask::Execute(IAIMPTaskOwner *Owner)
     if (SUCCEEDED(playlist->QueryInterface(IID_IAIMPPropertyList, (void **)&props)))
     {
 
-        _result.id = _plugin->GetPropertyTextPlaylist(props, AIMP_PLAYLIST_PROPID_ID, "");
-        _result.name = _plugin->GetPropertyTextPlaylist(props, AIMP_PLAYLIST_PROPID_NAME, "Unknown");
+        _result.id = _plugin->GetPropertyText(props, AIMP_PLAYLIST_PROPID_ID, "");
+        _result.name = _plugin->GetPropertyText(props, AIMP_PLAYLIST_PROPID_NAME, "Unknown");
 
         // Total duration in seconds (stored as double by AIMP)
         double dur = 0.0;
