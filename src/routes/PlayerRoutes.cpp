@@ -98,17 +98,17 @@ static void HandlePlayPause(const httplib::Request& req, httplib::Response& res)
     res.set_content(response.dump(), "application/json");
 }
 
-// static void HandleStop(const httplib::Request& req, httplib::Response& res)
-// {
-//     SendAIMPCommand(AIMP_RA_CMD_STOP);
-    
-//     json response = {
-//         {"status", "ok"},
-//         {"message", "Playback stopped"}
-//     };
-    
-//     res.set_content(response.dump(), "application/json");
-// }
+static void HandleStop(const httplib::Request& req, httplib::Response& res)
+ {
+    SendAIMPCommand(AIMP_RA_CMD_STOP);
+   
+    json response = {
+        {"status", "ok"},
+        {"message", "Playback stopped"}
+    };
+   
+    res.set_content(response.dump(), "application/json");
+}
 
 static void HandleNext(const httplib::Request& req, httplib::Response& res)
 {
@@ -266,7 +266,7 @@ void RegisterPlayerRoutes(MyPlugin *plugin)
     
     // POST endpoints - playback control
     svr.Post("/player/playpause", HandlePlayPause);
-    // svr.Post("/player/stop", HandleStop);
+    svr.Post("/player/stop", HandleStop);
     svr.Post("/player/next", HandleNext);
     svr.Post("/player/previous", HandlePrevious);
     
