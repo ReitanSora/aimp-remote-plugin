@@ -3,8 +3,68 @@
 #include "../core/Plugin.h"
 #include <nlohmann/json.hpp>
 #include "../helpers/AlbumArtHelper.h"
+#include "../helpers/TrackInfoHelper.h"
+#include "../tasks/CGetTrackInfoTask.h"
+#include "../tasks/CGetTrackLyricsTask.h"
 
 using json = nlohmann::json;
+
+json parseLrcLyrics(const std::string& lrcRaw) {
+    json linesArray = json::array();
+    std::stringstream ss(lrcRaw);
+    std::string line;
+
+    while (std::getline(ss, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+
+        int minutes = 0;
+        float seconds = 0.0f;
+        char textBuffer[1024] = { 0 };
+
+
+        int matched = std::sscanf(line.c_str(), "[%d:%f]%1023[^\n]", &minutes, &seconds, textBuffer);
+
+        if (matched >= 2) {
+            int totalMilliseconds = static_cast<int>(((minutes * 60) + seconds) * 1000.0f);
+
+            std::string text = (matched == 3) ? std::string(textBuffer) : "";
+
+            size_t start = text.find_first_not_of(" \t");
+            if (start != std::string::npos) {
+                text = text.substr(start);
+            }
+            else if (text.find_first_of(" \t") == 0) {
+                text = "";
+            }
+
+            json lineObj;
+            lineObj["time"] = totalMilliseconds;
+            lineObj["text"] = text;
+
+            linesArray.push_back(lineObj);
+        }
+    }
+
+    return linesArray;
+}
+
+json parseUnsyncedLyrics(const std::string& rawText) {
+    json linesArray = json::array();
+    std::stringstream ss(rawText);
+    std::string line;
+
+    while (std::getline(ss, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+
+        linesArray.push_back(line);
+    }
+
+    return linesArray;
+}
 
 // =============================================================================
 // Route Handlers
@@ -12,57 +72,42 @@ using json = nlohmann::json;
 
 static void HandleGetTrackInfo(MyPlugin *plugin, const httplib::Request &req, httplib::Response &res)
 {
-    IAIMPFileInfo *fileInfo = nullptr;
-
-    if (FAILED(plugin->GetPlayerService()->GetInfo(&fileInfo)))
+    if (!plugin->GetThreadService())
     {
-        json response = {
-            {"success", false},
-            {"error", "No track currently playing"}};
-
-        res.status = 404;
-        res.set_content(response.dump(), "application/json; charset=utf-8");
+        res.status = 500;
+        res.set_content("{\"error\":\"Thread service unavailable\"}", "application/json");
         return;
     }
-    std::string title = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_TITLE, "Untitled");
-    std::string artist = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_ARTIST, "Unknown Artist");
-    std::string album = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_ALBUM, "Unknown Album");
-    std::string genre = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_GENRE, "Unknown Genre");
-	std::string filename = plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_FILENAME, "Unknown Format");
-    std::string extension = "unknown";
 
-    size_t dotPos = filename.find_last_of(".");
-    if (dotPos != std::string::npos && dotPos + 1 < filename.length()) {
-        extension = filename.substr(dotPos + 1);
+	CGetTrackInfoTask* task = new CGetTrackInfoTask(plugin);
+    task->AddRef();
 
-        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+	HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
+
+	
+    if (SUCCEEDED(hr))
+    {
+        const json &response = task->GetResult();
+        if(!response["success"])
+        {
+            res.status = 404;
+            res.set_content(response.dump(), "application/json; charset=utf-8");
+        }
+        else 
+        {
+            res.status = 200;
+            res.set_content(response.dump(), "application/json; charset=utf-8");
+        }
+    }
+    else
+    {
+        res.status = 500;
+        res.set_content("{\"error\":\"ExecuteInMainThread Failed\"}", "application/json");
     }
 
-    int playCount = 0;
-    int bitrate = 0;
-    int sampleRate = 0;
-    int rating = 0;
-
-    fileInfo->GetValueAsInt32(AIMP_FILEINFO_PROPID_BITRATE, &bitrate);
-    fileInfo->GetValueAsInt32(AIMP_FILEINFO_PROPID_SAMPLERATE, &sampleRate);
-    fileInfo->GetValueAsInt32(AIMP_FILEINFO_PROPID_ML_MARK, &rating);
-    fileInfo->GetValueAsInt32(AIMP_FILEINFO_PROPID_ML_PLAYCOUNT, &playCount);
-
-    json response = {
-        {"title", title},
-        {"artist", artist},
-        {"album", album},
-        {"format", extension},
-        {"genre", genre},
-        {"play_count", playCount},
-        {"bitrate", bitrate},
-        {"sample_rate", sampleRate},
-        {"rating", rating}};
-
-    fileInfo->Release();
-
-    res.status = 200;
-    res.set_content(response.dump(), "application/json; charset=utf-8");
+    task->Release();
+    
+    
 }
 
 static void HandleGetTrackCover(MyPlugin *plugin, const httplib::Request &req, httplib::Response &res)
@@ -127,6 +172,40 @@ static void HandleGetTrackCover(MyPlugin *plugin, const httplib::Request &req, h
     }
 }
 
+static void HandleGetTrackLyrics(MyPlugin *plugin, const httplib::Request &req, httplib::Response &res)
+{
+    std::string playlistId = req.get_param_value("playlistId");
+    int songIndex = std::stoi(req.get_param_value("songIndex"));
+
+    CGetTrackLyricsTask* task = new CGetTrackLyricsTask(plugin, playlistId, songIndex);
+
+    plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
+
+    std::string lyrics = task->GetLyrics();
+    task->Release();
+
+    if (!lyrics.empty()) {
+        json responseJson;
+
+        if (lyrics.find('[') != std::string::npos && lyrics.find(']') != std::string::npos) {
+            responseJson["type"] = "synced";
+            responseJson["lines"] = parseLrcLyrics(lyrics);
+        }
+        else {
+            responseJson["type"] = "unsynced";
+            responseJson["text"] = parseUnsyncedLyrics(lyrics);
+        }
+
+        res.status = 200;
+        res.set_content(responseJson.dump(), "application/json");
+    }
+    else {
+        res.status = 404;
+        res.set_content("{\"error\": \"No embedded lyrics found\"}", "application/json");
+    }
+
+}
+
 // =============================================================================
 // Route Registration
 // =============================================================================
@@ -141,4 +220,7 @@ void RegisterTrackRoutes(MyPlugin* plugin)
 
     svr.Get("/track/cover", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetTrackCover(plugin, req, res); });
+
+    svr.Get("/track/lyrics", [plugin](const httplib::Request &req, httplib::Response &res)
+            { HandleGetTrackLyrics(plugin, req, res); });
 }
