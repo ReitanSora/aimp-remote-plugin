@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -203,6 +203,7 @@
     <ClInclude Include="src\helpers\AlbumArtHelper.h" />
     <ClInclude Include="src\helpers\NetworkHelper.h" />
     <ClInclude Include="src\helpers\QRHelper.h" />
+    <ClInclude Include="src\helpers\TrackInfoHelper.h" />
     <ClInclude Include="src\models\Playlist.h" />
     <ClInclude Include="src\models\Track.h" />
     <ClInclude Include="src\pch.h" />
@@ -210,12 +211,15 @@
     <ClInclude Include="src\routes\PlayerRoutes.h" />
     <ClInclude Include="src\routes\PlaylistRoutes.h" />
     <ClInclude Include="src\routes\TrackRoutes.h" />
+    <ClInclude Include="src\tasks\CDeletePlaylistItemTask.h" />
     <ClInclude Include="src\tasks\CGetCurrentPlaylistTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistTrackUriTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistInfoTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistItemsTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistsTask.h" />
     <ClInclude Include="src\tasks\CGetPlaylistStatsTask.h" />
+    <ClInclude Include="src\tasks\CGetTrackInfoTask.h" />
+    <ClInclude Include="src\tasks\CGetTrackLyricsTask.h" />
     <ClInclude Include="src\tasks\CPlayItemTask.h" />
     <ClInclude Include="src\third_party\qrcodegen\qrcodegen.hpp" />
   </ItemGroup>
@@ -229,6 +233,7 @@
     <ClCompile Include="src\helpers\AlbumArtHelper.cpp" />
     <ClCompile Include="src\helpers\NetworkHelper.cpp" />
     <ClCompile Include="src\helpers\QRHelper.cpp" />
+    <ClCompile Include="src\helpers\TrackInfoHelper.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -238,12 +243,15 @@
     <ClCompile Include="src\routes\PlayerRoutes.cpp" />
     <ClCompile Include="src\routes\PlaylistRoutes.cpp" />
     <ClCompile Include="src\routes\TrackRoutes.cpp" />
+    <ClCompile Include="src\tasks\CDeletePlaylistItemTask.cpp" />
     <ClCompile Include="src\tasks\CGetCurrentPlaylistTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistTrackUriTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistInfoTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistItemsTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistsTask.cpp" />
     <ClCompile Include="src\tasks\CGetPlaylistStatsTask.cpp" />
+    <ClCompile Include="src\tasks\CGetTrackInfoTask.cpp" />
+    <ClCompile Include="src\tasks\CGetTrackLyricsTask.cpp" />
     <ClCompile Include="src\tasks\CPlayItemTask.cpp" />
     <ClCompile Include="src\third_party\qrcodegen\qrcodegen.cpp" />
   </ItemGroup>
