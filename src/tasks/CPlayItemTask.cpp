@@ -3,9 +3,7 @@
 #include "CPlayItemTask.h"
 
 CPlayItemTask::CPlayItemTask(MyPlugin *plugin, const std::string &id, int index)
-    : _plugin(plugin), _playlistId(id), _index(index)
-{
-}
+    : _plugin(plugin), _playlistId(id), _index(index) {}
 
 HRESULT WINAPI CPlayItemTask::QueryInterface(REFIID riid, void **ppvObject)
 {
@@ -36,14 +34,12 @@ ULONG WINAPI CPlayItemTask::Release()
 
 void WINAPI CPlayItemTask::Execute(IAIMPTaskOwner *Owner)
 {
-    if (!_plugin)
-        return;
+    if (!_plugin) return;
 
     IAIMPServicePlayer *playerService = nullptr;
     IAIMPServicePlaylistManager *playlistManager = _plugin->GetPlaylistService();
 
-    if (FAILED(_plugin->GetCore()->QueryInterface(IID_IAIMPServicePlayer, (void **)&playerService)))
-        return;
+    if (FAILED(_plugin->GetCore()->QueryInterface(IID_IAIMPServicePlayer, (void **)&playerService))) return;
 
     IAIMPString *idPlaylist = nullptr;
     if (SUCCEEDED(_plugin->CreateAIMPString(_playlistId, &idPlaylist)))

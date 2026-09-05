@@ -2,9 +2,8 @@
 #include "CGetPlaylistTrackUriTask.h"
 #include "../helpers/AlbumArtHelper.h"
 
-CGetPlaylistTrackUriTask::CGetPlaylistTrackUriTask(MyPlugin* plugin, const std::string& id)
-    : _plugin(plugin), _playlistId(id) {
-}
+CGetPlaylistTrackUriTask::CGetPlaylistTrackUriTask(MyPlugin* plugin, const std::string& playlistId)
+    : _plugin(plugin), _playlistId(playlistId) {}
 
 HRESULT WINAPI CGetPlaylistTrackUriTask::QueryInterface(REFIID riid, void** ppvObject)
 {

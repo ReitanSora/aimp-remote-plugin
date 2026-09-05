@@ -35,7 +35,6 @@ void WINAPI CGetTrackLyricsTask::Execute(IAIMPTaskOwner* Owner)
 {
     if (!_plugin || (Owner && Owner->IsCanceled())) return;
     
-
     IAIMPServicePlaylistManager* manager = _plugin->GetPlaylistService();
     if (!manager) return;
 

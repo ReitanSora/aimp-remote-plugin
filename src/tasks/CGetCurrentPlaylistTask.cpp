@@ -29,12 +29,10 @@ ULONG WINAPI CGetCurrentPlaylistTask::Release()
 
 void WINAPI CGetCurrentPlaylistTask::Execute(IAIMPTaskOwner *Owner)
 {
-    if (!_plugin)
-        return;
+    if (!_plugin) return;
 
     IAIMPServicePlayer *player = nullptr;
-    if (FAILED(_plugin->GetCore()->QueryInterface(IID_IAIMPServicePlayer, (void **)&player)))
-        return;
+    if (FAILED(_plugin->GetCore()->QueryInterface(IID_IAIMPServicePlayer, (void **)&player))) return;
 
     // Get the currently playing IAIMPPlaylistItem
     IAIMPPlaylistItem *playlistItem = nullptr;
@@ -47,8 +45,7 @@ void WINAPI CGetCurrentPlaylistTask::Execute(IAIMPTaskOwner *Owner)
 
     // From the item, get the IAIMPPlaylist it belongs to
     IAIMPPlaylist *playlist = nullptr;
-    if (FAILED(playlistItem->GetValueAsObject(AIMP_PLAYLISTITEM_PROPID_PLAYLIST,
-                                              IID_IAIMPPlaylist, (void **)&playlist)))
+    if (FAILED(playlistItem->GetValueAsObject(AIMP_PLAYLISTITEM_PROPID_PLAYLIST, IID_IAIMPPlaylist, (void **)&playlist)))
     {
         playlistItem->Release();
         return;

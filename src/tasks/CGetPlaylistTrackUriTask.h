@@ -69,7 +69,7 @@ public:
      *
      * The constructor does not take ownership of `plugin`.
      */
-    CGetPlaylistTrackUriTask(MyPlugin* plugin, const std::string& id);
+    CGetPlaylistTrackUriTask(MyPlugin* plugin, const std::string& playlistId);
 
     /**
      * @brief Standard COM QueryInterface implementation.

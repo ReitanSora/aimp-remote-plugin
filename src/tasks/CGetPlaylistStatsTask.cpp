@@ -2,9 +2,7 @@
 #include "CGetPlaylistStatsTask.h"
 
 CGetPlaylistStatsTask::CGetPlaylistStatsTask(MyPlugin *plugin, const std::string &id)
-    : _plugin(plugin), _playlistId(id)
-{
-}
+    : _plugin(plugin), _playlistId(id) {}
 
 HRESULT WINAPI CGetPlaylistStatsTask::QueryInterface(REFIID riid, void **ppvObject)
 {
@@ -30,20 +28,18 @@ ULONG WINAPI CGetPlaylistStatsTask::Release()
 
 void WINAPI CGetPlaylistStatsTask::Execute(IAIMPTaskOwner *Owner)
 {
-    if (!_plugin)
-        return;
+    if (!_plugin) return;
 
-    IAIMPString *idStr = nullptr;
-    if (FAILED(_plugin->CreateAIMPString(_playlistId, &idStr)))
-        return;
+    IAIMPString *idPlaylist = nullptr;
+    if (FAILED(_plugin->CreateAIMPString(_playlistId, &idPlaylist))) return;
 
     IAIMPPlaylist *playlist = nullptr;
-    if (FAILED(_plugin->GetPlaylistService()->GetLoadedPlaylistByID(idStr, &playlist)))
+    if (FAILED(_plugin->GetPlaylistService()->GetLoadedPlaylistByID(idPlaylist, &playlist)))
     {
-        idStr->Release();
+        idPlaylist->Release();
         return;
     }
-    idStr->Release();
+    idPlaylist->Release();
 
     int count = playlist->GetItemCount();
 
@@ -64,14 +60,14 @@ void WINAPI CGetPlaylistStatsTask::Execute(IAIMPTaskOwner *Owner)
         if (FAILED(playlist->GetItem(i, IID_IAIMPPlaylistItem, (void **)&item)))
             continue;
 
-        IAIMPFileInfo *fi = nullptr;
+        IAIMPFileInfo *fileInfo = nullptr;
         if (SUCCEEDED(item->GetValueAsObject(AIMP_PLAYLISTITEM_PROPID_FILEINFO,
-                                             IID_IAIMPFileInfo, (void **)&fi)))
+                                             IID_IAIMPFileInfo, (void **)&fileInfo)))
         {
             // Unique sets
-            std::string genre = _plugin->GetPropertyText(fi, AIMP_FILEINFO_PROPID_GENRE, "");
-            std::string artist = _plugin->GetPropertyText(fi, AIMP_FILEINFO_PROPID_ARTIST, "");
-            std::string album = _plugin->GetPropertyText(fi, AIMP_FILEINFO_PROPID_ALBUM, "");
+            std::string genre = _plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_GENRE, "");
+            std::string artist = _plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_ARTIST, "");
+            std::string album = _plugin->GetPropertyText(fileInfo, AIMP_FILEINFO_PROPID_ALBUM, "");
 
             if (!genre.empty())
                 genreSet.insert(genre);
@@ -82,7 +78,7 @@ void WINAPI CGetPlaylistStatsTask::Execute(IAIMPTaskOwner *Owner)
 
             // Bitrate
             int bitrate = 0;
-            if (SUCCEEDED(fi->GetValueAsInt32(AIMP_FILEINFO_PROPID_BITRATE, &bitrate)) && bitrate > 0)
+            if (SUCCEEDED(fileInfo->GetValueAsInt32(AIMP_FILEINFO_PROPID_BITRATE, &bitrate)) && bitrate > 0)
             {
                 totalBitrate += bitrate;
                 bitrateCount++;
@@ -90,7 +86,7 @@ void WINAPI CGetPlaylistStatsTask::Execute(IAIMPTaskOwner *Owner)
 
             // Rating (ML rating, float 0..5)
             double rating = 0.0;
-            fi->GetValueAsFloat(AIMP_FILEINFO_PROPID_ML_RATING, &rating);
+            fileInfo->GetValueAsFloat(AIMP_FILEINFO_PROPID_ML_RATING, &rating);
             if (rating > 0.0)
             {
                 totalRating += rating;
@@ -99,16 +95,16 @@ void WINAPI CGetPlaylistStatsTask::Execute(IAIMPTaskOwner *Owner)
 
             // Play count
             int playCount = 0;
-            fi->GetValueAsInt32(AIMP_FILEINFO_PROPID_ML_PLAYCOUNT, &playCount);
+            fileInfo->GetValueAsInt32(AIMP_FILEINFO_PROPID_ML_PLAYCOUNT, &playCount);
             _result.totalPlayCount += playCount;
             if (playCount == 0)
                 _result.tracksNeverPlayed++;
 
             INT64 fileSize = 0;
-            fi->GetValueAsInt64(AIMP_FILEINFO_PROPID_FILESIZE, &fileSize);
+            fileInfo->GetValueAsInt64(AIMP_FILEINFO_PROPID_FILESIZE, &fileSize);
             _result.totalSizeBytes += fileSize;
 
-            fi->Release();
+            fileInfo->Release();
         }
 
         item->Release();

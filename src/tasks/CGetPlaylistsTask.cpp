@@ -33,15 +33,13 @@ ULONG WINAPI CGetPlaylistsTask::Release()
 
 void WINAPI CGetPlaylistsTask::Execute(IAIMPTaskOwner *Owner)
 {
-    if (!_plugin)
-        return;
+    if (!_plugin) return;
 
     IAIMPCore *core = _plugin->GetCore();
     IAIMPServicePlaylistManager *manager = nullptr;
 
     if (SUCCEEDED(core->QueryInterface(IID_IAIMPServicePlaylistManager, (void **)&manager)))
     {
-
         int count = manager->GetLoadedPlaylistCount();
 
         IAIMPPlaylist *activePlaylist = nullptr;

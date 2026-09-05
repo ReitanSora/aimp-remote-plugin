@@ -2,9 +2,7 @@
 #include "CGetPlaylistInfoTask.h"
 
 CGetPlaylistInfoTask::CGetPlaylistInfoTask(MyPlugin *plugin, const std::string &id)
-    : _plugin(plugin), _playlistId(id)
-{
-}
+    : _plugin(plugin), _playlistId(id) {}
 
 HRESULT WINAPI CGetPlaylistInfoTask::QueryInterface(REFIID riid, void **ppvObject)
 {
@@ -32,25 +30,22 @@ ULONG WINAPI CGetPlaylistInfoTask::Release()
 
 void WINAPI CGetPlaylistInfoTask::Execute(IAIMPTaskOwner *Owner)
 {
-    if (!_plugin)
-        return;
+    if (!_plugin) return;
 
-    IAIMPString *idStr = nullptr;
-    if (FAILED(_plugin->CreateAIMPString(_playlistId, &idStr)))
-        return;
+    IAIMPString *idPlaylist = nullptr;
+    if (FAILED(_plugin->CreateAIMPString(_playlistId, &idPlaylist))) return;
 
     IAIMPPlaylist *playlist = nullptr;
-    if (FAILED(_plugin->GetPlaylistService()->GetLoadedPlaylistByID(idStr, &playlist)))
+    if (FAILED(_plugin->GetPlaylistService()->GetLoadedPlaylistByID(idPlaylist, &playlist)))
     {
-        idStr->Release();
+        idPlaylist->Release();
         return;
     }
-    idStr->Release();
+    idPlaylist->Release();
 
     IAIMPPropertyList *props = nullptr;
     if (SUCCEEDED(playlist->QueryInterface(IID_IAIMPPropertyList, (void **)&props)))
     {
-
         _result.id = _plugin->GetPropertyText(props, AIMP_PLAYLIST_PROPID_ID, "");
         _result.name = _plugin->GetPropertyText(props, AIMP_PLAYLIST_PROPID_NAME, "Unknown");
 

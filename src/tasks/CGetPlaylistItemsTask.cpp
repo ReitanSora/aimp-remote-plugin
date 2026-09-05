@@ -2,9 +2,7 @@
 #include "CGetPlaylistItemsTask.h"
 
 CGetPlaylistItemsTask::CGetPlaylistItemsTask(MyPlugin *plugin, const std::string &id)
-    : _plugin(plugin), _playlistId(id)
-{
-}
+    : _plugin(plugin), _playlistId(id) {}
 
 HRESULT WINAPI CGetPlaylistItemsTask::QueryInterface(REFIID riid, void **ppvObject)
 {
@@ -35,16 +33,12 @@ ULONG WINAPI CGetPlaylistItemsTask::Release()
 
 void WINAPI CGetPlaylistItemsTask::Execute(IAIMPTaskOwner *Owner)
 {
-    if (!_plugin)
-        return;
+    if (!_plugin) return;
 
     IAIMPServicePlaylistManager *manager = _plugin->GetPlaylistService();
+    
     IAIMPString *idPlaylist = nullptr;
-
-    if (FAILED(_plugin->CreateAIMPString(_playlistId, &idPlaylist)))
-    {
-        return;
-    }
+    if (FAILED(_plugin->CreateAIMPString(_playlistId, &idPlaylist))) return;
 
     IAIMPPlaylist *playlist = nullptr;
     if (FAILED(manager->GetLoadedPlaylistByID(idPlaylist, &playlist)))
