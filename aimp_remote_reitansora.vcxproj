@@ -210,6 +210,7 @@
     <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\routes\PlayerRoutes.h" />
     <ClInclude Include="src\routes\PlaylistRoutes.h" />
+    <ClInclude Include="src\routes\SystemRoutes.h" />
     <ClInclude Include="src\routes\TrackRoutes.h" />
     <ClInclude Include="src\tasks\CDeletePlaylistItemTask.h" />
     <ClInclude Include="src\tasks\CGetCurrentPlaylistTask.h" />
@@ -242,6 +243,7 @@
     </ClCompile>
     <ClCompile Include="src\routes\PlayerRoutes.cpp" />
     <ClCompile Include="src\routes\PlaylistRoutes.cpp" />
+    <ClCompile Include="src\routes\SystemRoutes.cpp" />
     <ClCompile Include="src\routes\TrackRoutes.cpp" />
     <ClCompile Include="src\tasks\CDeletePlaylistItemTask.cpp" />
     <ClCompile Include="src\tasks\CGetCurrentPlaylistTask.cpp" />
