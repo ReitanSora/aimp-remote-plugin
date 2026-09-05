@@ -9,7 +9,6 @@ json GetTrackInfo(MyPlugin* plugin)
     if (FAILED(plugin->GetPlayerService()->GetInfo(&fileInfo)))
     {
         json response = {
-            {"success", false},
             {"error", "No track currently playing"} };
 
         return response;
@@ -75,12 +74,11 @@ json GetTrackInfo(MyPlugin* plugin)
         {"duration", duration},
         {"format", extension},
         {"genre", genre},
-        {"index", itemId},
-        {"play_count", playCount},
-        {"playlist_id", playlistId},
+        {"playCount", playCount},
+        {"playlistId", playlistId},
         {"rating", rating},
-        {"sample_rate", sampleRate},
-        {"success", true},
+        {"sampleRate", sampleRate},
+        {"songIndex", itemId},
         {"title", title },
     };
 
