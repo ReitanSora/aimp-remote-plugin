@@ -74,21 +74,19 @@ static void HandleGetTrackInfo(MyPlugin *plugin, const httplib::Request &req, ht
 {
     if (!plugin->GetThreadService())
     {
-        res.status = 500;
-        res.set_content("{\"error\":\"Thread service unavailable\"}", "application/json");
+        res.status = 503;
+        res.set_content(json{{"error", "Thread service unavailable"}}.dump(), "application/json");
         return;
     }
 
 	CGetTrackInfoTask* task = new CGetTrackInfoTask(plugin);
-    task->AddRef();
 
 	HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
-
 	
     if (SUCCEEDED(hr))
     {
         const json &response = task->GetResult();
-        if(!response["success"])
+        if(response.contains("error"))
         {
             res.status = 404;
             res.set_content(response.dump(), "application/json; charset=utf-8");
@@ -102,11 +100,10 @@ static void HandleGetTrackInfo(MyPlugin *plugin, const httplib::Request &req, ht
     else
     {
         res.status = 500;
-        res.set_content("{\"error\":\"ExecuteInMainThread Failed\"}", "application/json");
+        res.set_content(json{{"error", "Failed to retrieve track info"}}.dump(), "application/json");
     }
 
     task->Release();
-    
     
 }
 
@@ -116,12 +113,8 @@ static void HandleGetTrackCover(MyPlugin *plugin, const httplib::Request &req, h
 
     if (FAILED(plugin->GetPlayerService()->GetInfo(&fileInfo)))
     {
-        res.status = 404;
-        res.set_content(json{
-                            {"success", false},
-                            {"error", "No track currently playing"}}
-                            .dump(),
-                        "application/json; charset=utf-8");
+        res.status = 500;
+        res.set_content(json{{"error", "Failed to retrieve track info"}}.dump(), "application/json; charset=utf-8");
         return;
     }
 
@@ -131,11 +124,7 @@ static void HandleGetTrackCover(MyPlugin *plugin, const httplib::Request &req, h
     {
         fileInfo->Release();
         res.status = 500;
-        res.set_content(json{
-                            {"success", false},
-                            {"error", "Failed to get track file URI"}}
-                            .dump(),
-                        "application/json; charset=utf-8");
+        res.set_content(json{{"error", "Failed to retrieve track file URI"}}.dump(), "application/json; charset=utf-8");
         return;
     }
 
@@ -158,16 +147,13 @@ static void HandleGetTrackCover(MyPlugin *plugin, const httplib::Request &req, h
     {
         std::string mimeType = get_mime_type(imageBytes);
 
+        res.status = 200;
         res.set_content(reinterpret_cast<const char *>(imageBytes.data()), imageBytes.size(), mimeType);
     }
     else
     {
-        json response = {
-            {"success", false},
-            {"error", "Album art not found or retrieval timeout"}};
-
         res.status = 404;
-        res.set_content(response.dump(), "application/json; charset=utf-8");
+        res.set_content(json{{"error", "Album art not found or retrieval timeout"}}.dump(), "application/json; charset=utf-8");
         return;
     }
 }
@@ -201,7 +187,7 @@ static void HandleGetTrackLyrics(MyPlugin *plugin, const httplib::Request &req, 
     }
     else {
         res.status = 404;
-        res.set_content("{\"error\": \"No embedded lyrics found\"}", "application/json");
+        res.set_content(json{{"error", "No embedded lyrics found"}}.dump(), "application/json");
     }
 
 }
@@ -210,17 +196,17 @@ static void HandleGetTrackLyrics(MyPlugin *plugin, const httplib::Request &req, 
 // Route Registration
 // =============================================================================
 
-void RegisterTrackRoutes(MyPlugin* plugin)
+void RegisterTrackRoutes(MyPlugin* plugin, const std::string& prefix)
 {
     auto &svr = plugin->GetHttpServer();
 
     // GET endpoints
-    svr.Get("/track/info", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/track/info", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetTrackInfo(plugin, req, res); });
 
-    svr.Get("/track/cover", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/track/cover", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetTrackCover(plugin, req, res); });
 
-    svr.Get("/track/lyrics", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/track/lyrics", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetTrackLyrics(plugin, req, res); });
 }

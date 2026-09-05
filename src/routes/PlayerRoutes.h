@@ -17,4 +17,4 @@ class MyPlugin;
  * - POST /player/shuffle      - Toggle shuffle
  * - POST /player/repeat       - Toggle repeat
  */
-void RegisterPlayerRoutes(MyPlugin *plugin);
+void RegisterPlayerRoutes(MyPlugin *plugin, const std::string& prefix);

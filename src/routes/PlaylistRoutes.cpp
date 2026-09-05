@@ -23,12 +23,12 @@ static void HandleGetPlaylistList(MyPlugin *plugin, const httplib::Request &req,
 
     if (!plugin->GetPlaylistService() || !plugin->GetThreadService())
     {
-        res.status = 500;
+        res.status = 503;
+        res.set_content(json{{"error", "Services unavailable"}}.dump(), "application/json");
         return;
     }
 
     CGetPlaylistsTask *task = new CGetPlaylistsTask(plugin);
-    task->AddRef();
 
     HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
 
@@ -40,7 +40,7 @@ static void HandleGetPlaylistList(MyPlugin *plugin, const httplib::Request &req,
 
         for (const auto &pl : results)
         {
-            response.push_back({{"id", pl.id},
+            response.push_back({{"playlistId", pl.id},
                                 {"name", pl.name},
                                 {"itemCount", pl.itemCount}});
         }
@@ -51,7 +51,7 @@ static void HandleGetPlaylistList(MyPlugin *plugin, const httplib::Request &req,
     else
     {
         res.status = 500;
-        res.set_content("{\"error\": \"ExecuteInMainThread Failed\"}", "application/json");
+        res.set_content(json{{"error", "Failed to retrieve playlists"}}.dump(), "application/json");
     }
 
     task->Release();
@@ -61,13 +61,12 @@ static void HandleGetCurrentPlaylist(MyPlugin *plugin, const httplib::Request &r
 {
     if (!plugin->GetPlaylistService() || !plugin->GetThreadService())
     {
-        res.status = 500;
-        res.set_content("{\"error\":\"Services unavailable\"}", "application/json");
+        res.status = 503;
+        res.set_content(json{{"error", "Services unavailable"}}.dump(), "application/json");
         return;
     }
 
     CGetCurrentPlaylistTask *task = new CGetCurrentPlaylistTask(plugin);
-    task->AddRef();
 
     HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
 
@@ -76,23 +75,25 @@ static void HandleGetCurrentPlaylist(MyPlugin *plugin, const httplib::Request &r
         const auto &result = task->GetResult();
         if (result.found)
         {
+            json response = {
+                {"playlistId", result.id},
+                {"name", result.name},
+                {"itemCount", result.itemCount}
+            };
+
             res.status = 200;
-            res.set_content(json{
-                                {"id", result.id},
-                                {"name", result.name},
-                                {"itemCount", result.itemCount}}
-                                .dump(),
-                            "application/json; charset=utf-8");
+            res.set_content(response.dump(), "application/json; charset=utf-8");
         }
         else
         {
-            res.status = 204;
+            res.status = 404;
+            res.set_content(json{{"error", "Current playlist not found"}}.dump(), "application/json");
         }
     }
     else
     {
         res.status = 500;
-        res.set_content("{\"error\":\"ExecuteInMainThread Failed\"}", "application/json");
+        res.set_content(json{{"error", "Failed to get current playlist"}}.dump(), "application/json");
     }
 
     task->Release();
@@ -100,16 +101,16 @@ static void HandleGetCurrentPlaylist(MyPlugin *plugin, const httplib::Request &r
 
 static void HandleGetPlaylistInfo(MyPlugin *plugin, const httplib::Request &req, httplib::Response &res)
 {
-    std::string id = req.get_param_value("id");
-    if (id.empty())
+    if (!req.has_param("playlistId"))
     {
-        res.status = 400;
-        res.set_content("{\"error\":\"Missing playlist id\"}", "application/json");
+        res.status = 422;
+        res.set_content(json{{"error", "Missing playlist id"}}.dump(), "application/json");
         return;
     }
+    
+    std::string playlistId = req.get_param_value("playlistId");
 
-    CGetPlaylistInfoTask *task = new CGetPlaylistInfoTask(plugin, id);
-    task->AddRef();
+    CGetPlaylistInfoTask *task = new CGetPlaylistInfoTask(plugin, playlistId);
 
     HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
 
@@ -118,27 +119,28 @@ static void HandleGetPlaylistInfo(MyPlugin *plugin, const httplib::Request &req,
         const auto &r = task->GetResult();
         if (r.found)
         {
+            json response = {
+                {"playlistId", r.id},
+                {"name", r.name},
+                {"itemCount", r.itemCount},
+                {"duration", r.duration},
+                {"playingIndex", r.playingIndex},
+                {"isReadOnly", r.isReadOnly} 
+            };
+
             res.status = 200;
-            res.set_content(json{
-                                {"id", r.id},
-                                {"name", r.name},
-                                {"item_count", r.itemCount},
-                                {"duration", r.duration},
-                                {"playing_index", r.playingIndex},
-                                {"is_read_only", r.isReadOnly}}
-                                .dump(),
-                            "application/json; charset=utf-8");
+            res.set_content(response.dump(), "application/json; charset=utf-8");
         }
         else
         {
             res.status = 404;
-            res.set_content("{\"error\":\"Playlist not found\"}", "application/json");
+            res.set_content(json{{"error", "Playlist not found"}}.dump(), "application/json");
         }
     }
     else
     {
         res.status = 500;
-        res.set_content("{\"error\":\"ExecuteInMainThread Failed\"}", "application/json");
+        res.set_content(json{{"error", "Failed to retrieve playlist info"}}.dump(), "application/json");
     }
 
     task->Release();
@@ -146,16 +148,16 @@ static void HandleGetPlaylistInfo(MyPlugin *plugin, const httplib::Request &req,
 
 static void HandleGetPlaylistStats(MyPlugin *plugin, const httplib::Request &req, httplib::Response &res)
 {
-    std::string id = req.get_param_value("id");
-    if (id.empty())
+    if (!req.has_param("playlistId"))
     {
-        res.status = 400;
-        res.set_content("{\"error\":\"Missing playlist id\"}", "application/json");
+        res.status = 422;
+        res.set_content(json{{"error", "Missing playlist id"}}.dump(), "application/json");
         return;
     }
 
-    CGetPlaylistStatsTask *task = new CGetPlaylistStatsTask(plugin, id);
-    task->AddRef();
+    std::string playlistId = req.get_param_value("playlistId");
+
+    CGetPlaylistStatsTask *task = new CGetPlaylistStatsTask(plugin, playlistId);
 
     HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
 
@@ -164,31 +166,32 @@ static void HandleGetPlaylistStats(MyPlugin *plugin, const httplib::Request &req
         const auto &r = task->GetResult();
         if (r.found)
         {
+            json response = {
+                {"genres", r.genres},
+                {"artists", r.artists},
+                {"artistCount", r.artistCount},
+                {"albumCount", r.albumCount},
+                {"avgBitrate", r.avgBitrate},
+                {"avgRating", r.avgRating},
+                {"tracksWithRating", r.tracksWithRating},
+                {"totalPlayCount", r.totalPlayCount},
+                {"tracksNeverPlayed", r.tracksNeverPlayed},
+                {"totalSizeBytes", r.totalSizeBytes} 
+            };
+
             res.status = 200;
-            res.set_content(json{
-                                {"genres", r.genres},
-                                {"artists", r.artists},
-                                {"artist_count", r.artistCount},
-                                {"album_count", r.albumCount},
-                                {"avg_bitrate", r.avgBitrate},
-                                {"avg_rating", r.avgRating},
-                                {"tracks_with_rating", r.tracksWithRating},
-                                {"total_play_count", r.totalPlayCount},
-                                {"tracks_never_played", r.tracksNeverPlayed},
-                                {"total_size_bytes", r.totalSizeBytes}}
-                                .dump(),
-                            "application/json; charset=utf-8");
+            res.set_content(response.dump(), "application/json; charset=utf-8");
         }
         else
         {
             res.status = 404;
-            res.set_content("{\"error\":\"Playlist not found\"}", "application/json");
+            res.set_content(json{{"error", "Playlist not found"}}.dump(), "application/json");
         }
     }
     else
     {
         res.status = 500;
-        res.set_content("{\"error\":\"ExecuteInMainThread Failed\"}", "application/json");
+        res.set_content(json{{"error", "Failed to retrieve playlist stats"}}.dump(), "application/json");
     }
 
     task->Release();
@@ -196,16 +199,16 @@ static void HandleGetPlaylistStats(MyPlugin *plugin, const httplib::Request &req
 
 static void HandleGetPlaylistItems(MyPlugin *plugin, const httplib::Request &req, httplib::Response &res)
 {
-    std::string id = req.get_param_value("id");
-    if (id.empty())
+    if (!req.has_param("playlistId"))
     {
-        res.status = 400;
-        res.set_content("{\"error\": \"Missing Playlist ID\"}", "application/json");
+        res.status = 422;
+        res.set_content(json{{"error", "Missing Playlist ID"}}.dump(), "application/json");
         return;
     }
 
-    CGetPlaylistItemsTask *task = new CGetPlaylistItemsTask(plugin, id);
-    task->AddRef();
+    std::string playlistId = req.get_param_value("playlistId");
+
+    CGetPlaylistItemsTask *task = new CGetPlaylistItemsTask(plugin, playlistId);
 
     HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
 
@@ -216,19 +219,21 @@ static void HandleGetPlaylistItems(MyPlugin *plugin, const httplib::Request &req
 
         for (const auto &s : songs)
         {
-            response.push_back({{"index", s.index},
+            response.push_back({{"songIndex", s.index},
                                 {"title", s.title},
                                 {"artist", s.artist},
                                 {"album", s.album},
-                                {"bitate", s.bitrate},
+                                {"bitrate", s.bitrate},
                                 {"sampleRate", s.sampleRate},
                                 {"duration", s.duration}});
         }
+        res.status = 200;
         res.set_content(response.dump(), "application/json; charset=utf-8");
     }
     else
     {
         res.status = 500;
+        res.set_content(json{{"error", "Failed to retrieve playlist items"}}.dump(), "application/json");
     }
 
     task->Release();
@@ -236,27 +241,26 @@ static void HandleGetPlaylistItems(MyPlugin *plugin, const httplib::Request &req
 
 static void HandlePlayPlaylistItem(MyPlugin *plugin, const httplib::Request &req, httplib::Response &res)
 {
-    if (!req.has_param("id") || !req.has_param("index"))
+    if (!req.has_param("playlistId") || !req.has_param("songIndex"))
     {
-        res.status = 400;
-        res.set_content("{\"error\":\"Missing Playlist ID or Song index\"}", "application/json");
+        res.status = 422;
+        res.set_content(json{{"error", "Missing Playlist ID or Song index"}}.dump(), "application/json");
         return;
     }
 
-    std::string plId = req.get_param_value("id");
-    int index = std::stoi(req.get_param_value("index"));
+    std::string playlistId = req.get_param_value("playlistId");
+    int songIndex = std::stoi(req.get_param_value("songIndex"));
 
-    CPlayItemTask *task = new CPlayItemTask(plugin, plId, index);
-    task->AddRef();
+    CPlayItemTask *task = new CPlayItemTask(plugin, playlistId, songIndex);
 
     if (SUCCEEDED(plugin->GetThreadService()->ExecuteInMainThread(task, 0)))
     {
-        res.set_content("true", "application/json");
+        res.status = 204;
     }
     else
     {
         res.status = 500;
-        res.set_content("{\"error\":\"Failed play\"}", "application/json");
+        res.set_content(json{{"error", "Failed to play playlist item"}}.dump(), "application/json");
     }
 
     task->Release();
@@ -264,17 +268,16 @@ static void HandlePlayPlaylistItem(MyPlugin *plugin, const httplib::Request &req
 
 static void HandleGetPlaylistCover(MyPlugin* plugin, const httplib::Request& req, httplib::Response& res)
 {
-
-    std::string id = req.get_param_value("id");
-    if (id.empty())
+    if (!req.has_param("playlistId"))
     {
-        res.status = 400;
-        res.set_content("{\"error\":\"Missing playlist id\"}", "application/json");
+        res.status = 422;
+        res.set_content(json{{"error", "Missing playlist id"}}.dump(), "application/json");
         return;
     }
 
-    CGetPlaylistTrackUriTask* task = new CGetPlaylistTrackUriTask(plugin, id);
-    task->AddRef();
+    std::string playlistId = req.get_param_value("playlistId");
+
+    CGetPlaylistTrackUriTask* task = new CGetPlaylistTrackUriTask(plugin, playlistId);
 
     HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
 
@@ -287,8 +290,8 @@ static void HandleGetPlaylistCover(MyPlugin* plugin, const httplib::Request& req
 
     if (uris.empty())
     {
-        res.status = 404;
-        res.set_content("{\"error\":\"Playlist empty or not found\"}", "application/json");
+        res.status = 409;
+        res.set_content(json{{"error", "Playlist empty"}}.dump(), "application/json");
         return;
     }
 
@@ -324,13 +327,13 @@ static void HandleGetPlaylistCover(MyPlugin* plugin, const httplib::Request& req
     if (!imageBytes.empty())
     {
         std::string mimeType = get_mime_type(imageBytes);
-        res.set_content(reinterpret_cast<const char*>(imageBytes.data()), imageBytes.size(), mimeType);
         res.status = 200;
+        res.set_content(reinterpret_cast<const char*>(imageBytes.data()), imageBytes.size(), mimeType);
     }
     else
     {
         res.status = 404;
-        res.set_content("{\"error\":\"Cover art not found in playlist tracks\"}", "application/json");
+        res.set_content(json{{"error", "Cover art not found in playlist tracks"}}.dump(), "application/json");
     }
 
 }
@@ -339,8 +342,8 @@ static void HandleDeletePlaylistItem(MyPlugin *plugin, const httplib::Request &r
 {
     if (!plugin->GetPlaylistService() || !plugin->GetThreadService())
     {
-        res.status = 500;
-        res.set_content("{\"error\":\"Services unavailable\"}", "application/json");
+        res.status = 503;
+        res.set_content(json{{"error", "Services unavailable"}}.dump(), "application/json");
         return;
     }
 
@@ -352,7 +355,6 @@ static void HandleDeletePlaylistItem(MyPlugin *plugin, const httplib::Request &r
         boolean physicalDelete = body.at("physicalDelete").get<boolean>();
 
         CDeletePlaylistItemTask* task = new CDeletePlaylistItemTask(plugin, playlistId, songsIndexes, physicalDelete);
-        task->AddRef();
 
         HRESULT hr = plugin->GetThreadService()->ExecuteInMainThread(task, AIMP_SERVICE_THREADS_FLAGS_WAITFOR);
 
@@ -360,19 +362,18 @@ static void HandleDeletePlaylistItem(MyPlugin *plugin, const httplib::Request &r
         {
             if (task->HasErrors())
             {
-                res.status = 400;
-                res.set_content("{\"error\":\"One or more item indexes are out of bounds or invalid.\"}", "application/json");
+                res.status = 422;
+                res.set_content(json{{"error", "One or more item indexes are out of bounds or invalid."}}.dump(), "application/json");
             }
             else
             {
-                res.status = 200;
-                res.set_content("{\"success\": true}", "application/json");
+                res.status = 204;
             }
         }
         else
         {
             res.status = 500;
-            res.set_content("{\"error\":\"Failed to execute delete task\"}", "application/json");
+            res.set_content(json{{"error", "Failed to delete playlist item"}}.dump(), "application/json");
         }
 
         task->Release();
@@ -380,7 +381,7 @@ static void HandleDeletePlaylistItem(MyPlugin *plugin, const httplib::Request &r
     catch (const json::exception)
     {
         res.status = 400;
-        res.set_content("{\"error\":\"Invalid JSON body\"}", "application/json");
+        res.set_content(json{{"error", "Error parsing JSON"}}.dump(), "application/json");
     }
 }
 
@@ -388,33 +389,33 @@ static void HandleDeletePlaylistItem(MyPlugin *plugin, const httplib::Request &r
 // Route Registration
 // =============================================================================
 
-void RegisterPlaylistRoutes(MyPlugin* plugin)
+void RegisterPlaylistRoutes(MyPlugin* plugin, const std::string& prefix)
 {
     auto &svr = plugin->GetHttpServer();
 
     // GET endpoints
-    svr.Get("/playlist/list", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/playlist/list", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetPlaylistList(plugin, req, res); });
 
-    svr.Get("/playlist/current", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/playlist/current", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetCurrentPlaylist(plugin, req, res); });
 
-    svr.Get("/playlist/info", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/playlist/info", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetPlaylistInfo(plugin, req, res); });
 
-    svr.Get("/playlist/stats", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/playlist/stats", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetPlaylistStats(plugin, req, res); });
 
-    svr.Get("/playlist/items", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/playlist/items", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandleGetPlaylistItems(plugin, req, res); });
 
-    svr.Get("/playlist/play", [plugin](const httplib::Request &req, httplib::Response &res)
+    svr.Get(prefix + "/playlist/play", [plugin](const httplib::Request &req, httplib::Response &res)
             { HandlePlayPlaylistItem(plugin, req, res); });
 
-    svr.Get("/playlist/cover", [plugin](const httplib::Request& req, httplib::Response& res)
+    svr.Get(prefix + "/playlist/cover", [plugin](const httplib::Request& req, httplib::Response& res)
             { HandleGetPlaylistCover(plugin, req, res); });
 
 	// DELETE endpoint
-    svr.Delete("/playlist/items", [plugin](const httplib::Request& req, httplib::Response& res)
+    svr.Delete(prefix + "/playlist/items", [plugin](const httplib::Request& req, httplib::Response& res)
             { HandleDeletePlaylistItem(plugin, req, res); });
 }

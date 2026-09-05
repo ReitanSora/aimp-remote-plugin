@@ -13,4 +13,4 @@ class MyPlugin;
  * - GET  /playlist/items      - Get all items of a playlist
  * - GET  /playlist/play       - Play a selected item of a playlist
  */
-void RegisterPlaylistRoutes(MyPlugin *plugin);
+void RegisterPlaylistRoutes(MyPlugin *plugin, const std::string& prefix);

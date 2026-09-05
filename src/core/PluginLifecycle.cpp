@@ -4,6 +4,7 @@
 #include "../routes/PlayerRoutes.h"
 #include "../routes/PlaylistRoutes.h"
 #include "../routes/TrackRoutes.h"
+#include "../routes/SystemRoutes.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -164,14 +165,17 @@ HRESULT WINAPI MyPlugin::Initialize(IAIMPCore* Core)
 
     _httpServer = std::make_unique<httplib::Server>();
 
-    RegisterPlayerRoutes(this);
-    RegisterPlaylistRoutes(this);
-    RegisterTrackRoutes(this);
+	const std::string prefix = "/api/v1";
+
+    RegisterPlayerRoutes(this, prefix);
+    RegisterPlaylistRoutes(this, prefix);
+    RegisterTrackRoutes(this, prefix);
+    RegisterSystemRoutes(this, prefix);
 
     _httpThread = std::make_unique<std::thread>([this]()
-        {
-            _httpServer->listen(Config::HTTP_HOST, Config::HTTP_PORT);
-        });
+    {
+        _httpServer->listen(Config::HTTP_HOST, Config::HTTP_PORT);
+    });
 
     return S_OK;
 }

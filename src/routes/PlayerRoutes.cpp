@@ -72,6 +72,7 @@ static void HandleGetPlayerState(const httplib::Request& req, httplib::Response&
         {"repeat", repeat != 0}
     };
     
+    res.status = 200;
     res.set_content(response.dump(), "application/json");
 }
 
@@ -83,6 +84,7 @@ static void HandleGetVolume(const httplib::Request& req, httplib::Response& res)
         {"volume", volume}
     };
     
+    res.status = 200;
     res.set_content(response.dump(), "application/json");
 }
 
@@ -90,48 +92,28 @@ static void HandlePlayPause(const httplib::Request& req, httplib::Response& res)
 {
     SendAIMPCommand(AIMP_RA_CMD_PLAYPAUSE);
     
-    json response = {
-        {"status", "ok"},
-        {"message", "Playback toggled"}
-    };
-    
-    res.set_content(response.dump(), "application/json");
+    res.status = 204;
 }
 
 static void HandleStop(const httplib::Request& req, httplib::Response& res)
  {
     SendAIMPCommand(AIMP_RA_CMD_STOP);
    
-    json response = {
-        {"status", "ok"},
-        {"message", "Playback stopped"}
-    };
-   
-    res.set_content(response.dump(), "application/json");
+    res.status = 204;
 }
 
 static void HandleNext(const httplib::Request& req, httplib::Response& res)
 {
     SendAIMPCommand(AIMP_RA_CMD_NEXT);
     
-    json response = {
-        {"status", "ok"},
-        {"message", "Skipped to next track"}
-    };
-    
-    res.set_content(response.dump(), "application/json");
+    res.status = 204;
 }
 
 static void HandlePrevious(const httplib::Request& req, httplib::Response& res)
 {
     SendAIMPCommand(AIMP_RA_CMD_PREV);
     
-    json response = {
-        {"status", "ok"},
-        {"message", "Skipped to previous track"}
-    };
-    
-    res.set_content(response.dump(), "application/json");
+    res.status = 204;
 }
 
 static void HandleSetVolume(const httplib::Request& req, httplib::Response& res)
@@ -142,7 +124,7 @@ static void HandleSetVolume(const httplib::Request& req, httplib::Response& res)
         
         if (!body.contains("volume"))
         {
-            res.status = 400;
+            res.status = 422;
             res.set_content(json{{"error", "Missing 'volume' field"}}.dump(), "application/json");
             return;
         }
@@ -151,24 +133,19 @@ static void HandleSetVolume(const httplib::Request& req, httplib::Response& res)
         
         if (volume < 0 || volume > 100)
         {
-            res.status = 400;
+            res.status = 422;
             res.set_content(json{{"error", "Volume must be between 0 and 100"}}.dump(), "application/json");
             return;
         }
         
         SetAIMPProperty(AIMP_RA_PROPERTY_VOLUME, volume);
         
-        json response = {
-            {"status", "ok"},
-            {"volume", volume}
-        };
-        
-        res.set_content(response.dump(), "application/json");
+        res.status = 204;
     }
     catch (const json::exception&)
     {
-        res.status = 400;
-        res.set_content(json{{"error", "Invalid JSON"}}.dump(), "application/json");
+        res.status = 500;
+        res.set_content(json{{"error", "Failed to set volume"}}.dump(), "application/json");
     }
 }
 
@@ -180,26 +157,21 @@ static void HandleSeek(const httplib::Request& req, httplib::Response& res)
         
         if (!body.contains("position"))
         {
-            res.status = 400;
+            res.status = 422;
             res.set_content(json{{"error", "Missing 'position' field"}}.dump(), "application/json");
             return;
         }
         
-        int position = body["position"].get<int>(); // Position in milliseconds
+        int position = body["position"].get<int>();
         
         SetAIMPProperty(AIMP_RA_PROPERTY_PLAYER_POSITION, position);
         
-        json response = {
-            {"status", "ok"},
-            {"position", position}
-        };
-        
-        res.set_content(response.dump(), "application/json");
+        res.status = 204;
     }
     catch (const json::exception&)
     {
-        res.status = 400;
-        res.set_content(json{{"error", "Invalid JSON"}}.dump(), "application/json");
+        res.status = 500;
+        res.set_content(json{{"error", "Failed to seek"}}.dump(), "application/json");
     }
 }
 
@@ -210,13 +182,7 @@ static void HandleToggleShuffle(const httplib::Request& req, httplib::Response& 
 
     SetAIMPProperty(AIMP_RA_PROPERTY_TRACK_SHUFFLE, newShuffle);
 
-    json response = {
-        {"success", true},
-        {"shuffle", (newShuffle == 1) ? true : false}
-    };
-
-    res.status = 200;
-    res.set_content(response.dump(), "application/json");
+    res.status = 204;
 }
 
 static void HandleToggleRepeat(const httplib::Request& req, httplib::Response& res)
@@ -226,13 +192,7 @@ static void HandleToggleRepeat(const httplib::Request& req, httplib::Response& r
 
     SetAIMPProperty(AIMP_RA_PROPERTY_TRACK_REPEAT, newRepeat);
 
-    json response = {
-        {"success", true},
-        {"repeat", (newRepeat == 1) ? true : false}
-    };
-
-    res.status = 200;
-    res.set_content(response.dump(), "application/json");
+    res.status = 204;
 }
 
 static void HandleToggleMute(const httplib::Request& req, httplib::Response& res)
@@ -242,13 +202,7 @@ static void HandleToggleMute(const httplib::Request& req, httplib::Response& res
 
     SetAIMPProperty(AIMP_RA_PROPERTY_MUTE, newMute);
 
-    json response = {
-        {"success", true},
-        {"mute", (newMute == 1) ? true : false}
-    };
-
-    res.status = 200;
-    res.set_content(response.dump(), "application/json");
+    res.status = 204;
 }
 
 
@@ -256,24 +210,24 @@ static void HandleToggleMute(const httplib::Request& req, httplib::Response& res
 // Route Registration
 // =============================================================================
 
-void RegisterPlayerRoutes(MyPlugin *plugin)
+void RegisterPlayerRoutes(MyPlugin *plugin, const std::string& prefix)
 {
     auto& svr = plugin->GetHttpServer();
     
     // GET endpoints
-    svr.Get("/player/state", HandleGetPlayerState);
-    svr.Get("/player/volume", HandleGetVolume);
+    svr.Get(prefix + "/player/state", HandleGetPlayerState);
+    svr.Get(prefix + "/player/volume", HandleGetVolume);
     
     // POST endpoints - playback control
-    svr.Post("/player/playpause", HandlePlayPause);
-    svr.Post("/player/stop", HandleStop);
-    svr.Post("/player/next", HandleNext);
-    svr.Post("/player/previous", HandlePrevious);
+    svr.Post(prefix + "/player/playpause", HandlePlayPause);
+    svr.Post(prefix + "/player/stop", HandleStop);
+    svr.Post(prefix + "/player/next", HandleNext);
+    svr.Post(prefix + "/player/previous", HandlePrevious);
     
     // POST endpoints - settings
-    svr.Post("/player/volume", HandleSetVolume);
-    svr.Post("/player/seek", HandleSeek);
-    svr.Post("/player/mute", HandleToggleMute);
-    svr.Post("/player/shuffle", HandleToggleShuffle);
-    svr.Post("/player/repeat", HandleToggleRepeat);
+    svr.Post(prefix + "/player/volume", HandleSetVolume);
+    svr.Post(prefix + "/player/seek", HandleSeek);
+    svr.Post(prefix + "/player/mute", HandleToggleMute);
+    svr.Post(prefix + "/player/shuffle", HandleToggleShuffle);
+    svr.Post(prefix + "/player/repeat", HandleToggleRepeat);
 }
